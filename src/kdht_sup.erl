@@ -23,7 +23,7 @@ save_state(Pid) ->
 	dht_state:save(MyID).
 
 init([StateFile, Port, Mod, OptID]) ->
-	random:seed(now()),
+	random:seed(os:timestamp()),
 	{MyID, NodeAddrs} = case dht_state:load(StateFile) of
 		{error, _} -> 
 			{OptID, []};
