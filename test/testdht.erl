@@ -9,7 +9,7 @@
 
 start() ->
 	vlog:start_link("kdht.txt", ?TRACE),
-	random:seed(now()),
+	random:seed(os:timestamp()),
 	kdht_sup:start_link("dhtstate.dat", 6882, ?MODULE, dht_id:random()).
 
 stop(Pid) ->

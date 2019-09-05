@@ -48,7 +48,7 @@ init([]) ->
 handle_info({check, Key, Timeout, From, Msg}, State) ->
     #state{timers = Timers} = State,
     {Active, _} = gb_trees:get(Key, Timers),
-    case (timer:now_diff(now(), Active) div 1000) >= Timeout of
+    case (timer:now_diff(os:timestamp(), Active) div 1000) >= Timeout of
         true ->
             From ! Msg;
         false -> continue
@@ -75,7 +75,7 @@ handle_call({add, Key, Timeout, Msg}, From, State) ->
     {Pid, _} = From,
     ThisMsg = {check, Key, Timeout, Pid, Msg},
     {ok, NewRef} = timer:send_interval(Timeout, ThisMsg),
-    NewTimers = gb_trees:insert(Key, {now(), NewRef}, Timers),
+    NewTimers = gb_trees:insert(Key, {os:timestamp(), NewRef}, Timers),
     check_stats(gb_trees:size(NewTimers)),
     {reply, ok, State#state{timers = NewTimers}};
 
@@ -83,7 +83,7 @@ handle_call({active, Key}, _From, State) ->
     #state{timers = Timers} = State,
     false = gb_trees:is_empty(Timers),
     {_, TRef} = gb_trees:get(Key, Timers),
-    NewTimers = gb_trees:update(Key, {now(), TRef}, Timers),
+    NewTimers = gb_trees:update(Key, {os:timestamp(), TRef}, Timers),
     {reply, ok, State#state{timers = NewTimers}};
 
 handle_call({remove, Key}, _From, State) ->

@@ -71,7 +71,7 @@ handle_call({insert, InfoHash, IP, Port}, _From, #state{hashes = Hashes} = State
 			gb_trees:get(InfoHash, Hashes)
 	end,
 	?I(?FMT("insert a peer ~p:~p for hash ~s", [IP, Port, dht_id:tohex(InfoHash)])),
-	New = Exist ++ [{IP, Port, now()}],
+	New = Exist ++ [{IP, Port, os:timestamp()}],
 	NewTree = gb_trees:enter(InfoHash, {T, New}, Hashes),
 	{reply, ok, State#state{hashes = NewTree}}.
 
@@ -79,7 +79,7 @@ handle_info({expire, InfoHash}, State) ->
 	#state{hashes = Hashes} = State,
 	{TRef, Peers} = gb_trees:get(InfoHash, Hashes),
 	NewPeers = [{IP, Port, Time} || {IP, Port, Time} <- Peers, 
-		(timer:now_diff(now(), Time) div 1000) < ?EXPIRETIME],
+		(timer:now_diff(os:timestamp(), Time) div 1000) < ?EXPIRETIME],
 	NewHashes = case length(NewPeers) == 0 of
 		true -> 
 			timer:cancel(TRef),
